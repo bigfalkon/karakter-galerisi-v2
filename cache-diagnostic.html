@@ -85,12 +85,12 @@
 
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyDAmMtRBGyNOb6R2ZjSZrhN5NnGA_p-L3w",
-    authDomain: "character-gallery-e23ee.firebaseapp.com",
-    projectId: "character-gallery-e23ee",
-    storageBucket: "character-gallery-e23ee.firebasestorage.app",
-    messagingSenderId: "737596044949",
-    appId: "1:737596044949:web:5ddf2bda9fcfce9f990d9c"
+    apiKey: "AIzaSyDqFUuGo9cVOniOta5Takvwtlnb5SIYl8A",
+    authDomain: "character-gallery-v2.firebaseapp.com",
+    projectId: "character-gallery-v2",
+    storageBucket: "character-gallery-v2.firebasestorage.app",
+    messagingSenderId: "81948037217",
+    appId: "1:81948037217:web:2b256c16c53634a17d9a20"
 };
 const db = firebase.firestore();
 
@@ -127,7 +127,8 @@ async function loadData() {
         (c.evolutions||[]).forEach(e => add(e.imageUrl, name, `${e.star}★`));
         const auData = c.auData || {};
         Object.entries(auData).forEach(([auId, entry]) => {
-            if (entry.star3ImageUrl) add(entry.star3ImageUrl, name, `AU:${auId}`);
+            if (entry.maxStarImageUrl) add(entry.maxStarImageUrl, name, `AU:${auId}`);
+            if (entry.star3ImageUrl)  add(entry.star3ImageUrl,  name, `AU:${auId}`);
             if (entry.fusionImageUrl) add(entry.fusionImageUrl, name, `AU:${auId}-f`);
         });
     });

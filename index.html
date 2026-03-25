@@ -522,12 +522,12 @@
 
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyDAmMtRBGyNOb6R2ZjSZrhN5NnGA_p-L3w",
-    authDomain: "character-gallery-e23ee.firebaseapp.com",
-    projectId: "character-gallery-e23ee",
-    storageBucket: "character-gallery-e23ee.firebasestorage.app",
-    messagingSenderId: "737596044949",
-    appId: "1:737596044949:web:5ddf2bda9fcfce9f990d9c"
+    apiKey: "AIzaSyDqFUuGo9cVOniOta5Takvwtlnb5SIYl8A",
+    authDomain: "character-gallery-v2.firebaseapp.com",
+    projectId: "character-gallery-v2",
+    storageBucket: "character-gallery-v2.firebasestorage.app",
+    messagingSenderId: "81948037217",
+    appId: "1:81948037217:web:2b256c16c53634a17d9a20"
 };
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
@@ -578,22 +578,27 @@ const getStarEmojis = (isFusion, isDismissed, starCount, iconName = 'star') => {
     return `<div class="flex ${isFusion ? 'fusion-stars' : ''}">${Array(starCount).fill(icon).join('')}</div>`;
 };
 
-const get3StarImageUrl = (charId, useAu = false) => {
-    const char = characters.find(c => c.id === charId && !c.isFusion);
+const getMaxStar = (char) => 1 + (char.evolutions?.length || 0);
+
+const getMaxStarImageUrl = (charId, useAu = false) => {
+    const char = characters.find(c => c.id === charId && !c.isFusion)
+               || dismissedCharacters.find(c => c.id === charId && !c.isFusion);
     if (!char) return '';
     if (useAu && state.activeAuId) {
-        const auImg = char.auData?.[state.activeAuId]?.star3ImageUrl;
+        const auImg = char.auData?.[state.activeAuId]?.maxStarImageUrl;
         if (auImg) return auImg;
     }
-    return char.evolutions?.find(e => e.star === 3)?.imageUrl || char.imageUrl || '';
+    const maxStar = getMaxStar(char);
+    if (maxStar === 1) return char.imageUrl || '';
+    return char.evolutions?.find(e => e.star === maxStar)?.imageUrl || char.imageUrl || '';
 };
 
 const getCharacterImageUrlByStar = (charId, star, useAu = false) => {
     const char = characters.find(c => c.id === charId && !c.isFusion)
                || dismissedCharacters.find(c => c.id === charId && !c.isFusion);
     if (!char) return '';
-    if (useAu && state.activeAuId && star === 3) {
-        const auImg = char.auData?.[state.activeAuId]?.star3ImageUrl;
+    if (useAu && state.activeAuId && star === getMaxStar(char)) {
+        const auImg = char.auData?.[state.activeAuId]?.maxStarImageUrl;
         if (auImg) return auImg;
     }
     if (star === 1) return char.imageUrl || '';
@@ -606,7 +611,7 @@ const resolveCardImage = (char) => {
     const au = char.auData?.[state.activeAuId];
     if (!au) return char.displayImageUrl || char.imageUrl || '';
     if (char.isFusion) return au.fusionImageUrl || char.displayImageUrl || char.imageUrl || '';
-    if (char.displayStar === 3) return au.star3ImageUrl || char.displayImageUrl || '';
+    if (char.displayStar === getMaxStar(char)) return au.maxStarImageUrl || char.displayImageUrl || '';
     return char.displayImageUrl || char.imageUrl || '';
 };
 
@@ -615,7 +620,7 @@ const hasAuEntry = (char, auId) => {
     if (!char.auData) return false;
     const au = char.auData[auId];
     if (!au) return false;
-    return !!(char.isFusion ? au.fusionImageUrl : au.star3ImageUrl);
+    return !!(char.isFusion ? au.fusionImageUrl : au.maxStarImageUrl);
 };
 
 /** Check if an AU is accessible (not locked, or user has unlocked it) */
@@ -732,8 +737,8 @@ function _doRender() {
                     const auImg = item.auData?.[state.activeAuId]?.fusionImageUrl;
                     auOnlyItems.push({ ...item, displayStar: 4, displayImageUrl: auImg || item.previewUrl || item.imageUrl });
                 }
-            } else if (item.displayStar === 3) {
-                const auImg = item.auData?.[state.activeAuId]?.star3ImageUrl;
+            } else if (item.displayStar === getMaxStar(item)) {
+                const auImg = item.auData?.[state.activeAuId]?.maxStarImageUrl;
                 auOnlyItems.push({ ...item, displayImageUrl: auImg || item.displayImageUrl });
             }
         });
@@ -1170,13 +1175,13 @@ function openCharacterModal(charId, isDismissed = false) {
     m.evolutions.innerHTML = '';
 
     const isAuOnlyMode = !!state.activeAuId;
-    const reachableAusWithEntry = getReachableAus().filter(au => char.auData?.[au.id]?.star3ImageUrl);
+    const reachableAusWithEntry = getReachableAus().filter(au => char.auData?.[au.id]?.maxStarImageUrl);
 
     if (isAuOnlyMode) {
-        // AU Only mode: show AU image + 3★ original side by side
+        // AU Only mode: show AU image + max★ original side by side
         const auDef  = alternativeUniverses.find(a => a.id === state.activeAuId);
         const auEntry = char.auData?.[state.activeAuId];
-        const star3Img = char.evolutions?.find(e => e.star === 3)?.imageUrl || char.imageUrl;
+        const maxStarImg = getMaxStarImageUrl(char.id);
         const w = sizeProfiles[state.imageSizeIndex].minCardWidth;
         const color = auDef?.color || '#64dcb4';
 
@@ -1193,13 +1198,13 @@ function openCharacterModal(charId, isDismissed = false) {
             return div;
         };
 
-        if (auEntry?.star3ImageUrl) {
-            m.evolutions.appendChild(makeCard(auEntry.star3ImageUrl,
+        if (auEntry?.maxStarImageUrl) {
+            m.evolutions.appendChild(makeCard(auEntry.maxStarImageUrl,
                 `<span class="material-symbols-outlined" style="font-size:15px;">${auDef?.icon||'auto_fix_high'}</span>${auDef?.name||'AU'} Version`,
                 color));
         }
-        m.evolutions.appendChild(makeCard(star3Img,
-            `<span class="material-symbols-outlined" style="font-size:15px;">star</span>3★ Original`, null));
+        m.evolutions.appendChild(makeCard(maxStarImg,
+            `<span class="material-symbols-outlined" style="font-size:15px;">star</span>${getMaxStar(char)}★ Original`, null));
 
         document.getElementById('char-modal-header-btns').querySelectorAll('.modal-au-btn').forEach(b => b.remove());
 
@@ -1229,7 +1234,7 @@ function openCharacterModal(charId, isDismissed = false) {
             div.style.cssText = `border-color:${au.color||'#64dcb4'}88; display:none;`;
             const wrap = document.createElement('div');
             wrap.style.width = sizeProfiles[state.imageSizeIndex].minCardWidth;
-            wrap.innerHTML = `<img src="${auEntry.star3ImageUrl}" alt="${char.name} ${au.name}" class="w-full h-auto object-contain rounded-xl mb-2 cursor-zoom-in" onclick="enlargeImage(this.src)">`;
+            wrap.innerHTML = `<img src="${auEntry.maxStarImageUrl}" alt="${char.name} ${au.name}" class="w-full h-auto object-contain rounded-xl mb-2 cursor-zoom-in" onclick="enlargeImage(this.src)">`;
             const p = document.createElement('p');
             p.className = 'text-sm font-bold flex items-center gap-1';
             p.style.color = au.color || 'var(--au)';
@@ -1317,20 +1322,15 @@ function openFusionModal(fusionId) {
         m.left.container.style.display = '';
         m.right.container.style.display = '';
 
-        const getOriginal3Star = (charId) => {
-            const c = characters.find(x => x.id === charId && !x.isFusion)
-                   || dismissedCharacters.find(x => x.id === charId && !x.isFusion);
-            return c ? (c.evolutions?.find(e => e.star === 3)?.imageUrl || c.imageUrl || '') : '';
-        };
         const [p1, p2] = (fusion.fusionPartners || []).map(id =>
             characters.find(c => c.id === id) || dismissedCharacters.find(c => c.id === id));
         const setPartner = (side, pChar, irkElId) => {
             if (!pChar) return;
-            side.img.src = getOriginal3Star(pChar.id);
+            side.img.src = getMaxStarImageUrl(pChar.id);
             side.container.style.width = `${parseInt(w) * 0.75}px`;
             side.name.textContent = pChar.name;
             side.container.dataset.characterId = pChar.id;
-            side.star.innerHTML = getStarEmojis(false, false, 3);
+            side.star.innerHTML = getStarEmojis(false, false, getMaxStar(pChar));
             _setIrk(irkElId, pChar.irk);
         };
         setPartner(m.left, p1, 'modal-fusion-left-irk');
