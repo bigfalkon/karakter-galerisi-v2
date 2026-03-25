@@ -544,12 +544,13 @@ function prepareContestants(settings) {
                     });
                 }
             } else {
-                if (entry.star3ImageUrl) {
+                if (entry.maxStarImageUrl) {
+                    const maxStar = 1 + (char.evolutions?.length || 0);
                     pool.push({
                         id: `${char.id}_au_${auId}`,
                         name: char.name,
-                        label: '3★',
-                        imageUrl: entry.star3ImageUrl,
+                        label: `${maxStar}★`,
+                        imageUrl: entry.maxStarImageUrl,
                         auName: auDef?.name,
                         auColor: auDef?.color,
                     });

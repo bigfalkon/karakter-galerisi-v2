@@ -448,7 +448,7 @@ function buildEntryCaches(au) {
 
     allCharacters.forEach(char => {
         const entry   = char.auData?.[au.id];
-        const hasImg  = char.isFusion ? !!entry?.fusionImageUrl : !!entry?.star3ImageUrl;
+        const hasImg  = char.isFusion ? !!entry?.fusionImageUrl : !!entry?.maxStarImageUrl;
         if (hasImg) inList.push({ char, entry });
         else        outList.push({ char, entry: entry || null });
     });
@@ -496,10 +496,11 @@ function renderCurrentView() {
         // Images
         let imgHtml = '';
         if (currentView === 'in') {
-            const auImg   = char.isFusion ? entry.fusionImageUrl : entry.star3ImageUrl;
+            const auImg   = char.isFusion ? entry.fusionImageUrl : entry.maxStarImageUrl;
+            const maxStar = 1 + (char.evolutions?.length || 0);
             const origImg = char.isFusion
                 ? (char.previewUrl || char.imageUrl || '')
-                : (char.evolutions?.find(e=>e.star===3)?.imageUrl || char.imageUrl || '');
+                : (char.evolutions?.find(e=>e.star===maxStar)?.imageUrl || char.imageUrl || '');
             imgHtml = `
                 <div class="flex gap-2 flex-shrink-0">
                     <div class="flex flex-col items-center gap-1">

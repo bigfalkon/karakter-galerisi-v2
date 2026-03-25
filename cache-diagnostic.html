@@ -127,7 +127,8 @@ async function loadData() {
         (c.evolutions||[]).forEach(e => add(e.imageUrl, name, `${e.star}★`));
         const auData = c.auData || {};
         Object.entries(auData).forEach(([auId, entry]) => {
-            if (entry.star3ImageUrl) add(entry.star3ImageUrl, name, `AU:${auId}`);
+            if (entry.maxStarImageUrl) add(entry.maxStarImageUrl, name, `AU:${auId}`);
+            if (entry.star3ImageUrl)  add(entry.star3ImageUrl,  name, `AU:${auId}`);
             if (entry.fusionImageUrl) add(entry.fusionImageUrl, name, `AU:${auId}-f`);
         });
     });

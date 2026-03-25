@@ -843,9 +843,9 @@
         </div>
 
         <div id="au-entry-image-fields" class="flex flex-col gap-4">
-            <!-- 3★ image for characters -->
+            <!-- max star image for characters -->
             <div id="au-star3-field">
-                <label class="block text-sm font-medium mb-1">3★ AU Image <span class="text-xs text-gray-400">(character alternative)</span></label>
+                <label class="block text-sm font-medium mb-1">Max Yıldız AU Görseli <span class="text-xs text-gray-400">(max evrim görseli)</span></label>
                 <div class="flex flex-col sm:flex-row gap-2">
                     <select class="form-select sm:w-1/3 image-upload-method"><option value="imgbb">ImgBB Upload</option><option value="imgbb2">ImgBB 2 Upload</option><option value="vgy">VGY.ME Upload</option><option value="link">Direct Link</option></select>
                     <input type="file" class="form-input flex-grow image-upload-file" id="au-star3-file">
@@ -1183,7 +1183,7 @@ function renderAdminPanel() {
         const auDots = Object.keys(item.auData||{}).filter(auId => {
             const def = alternativeUniverses.find(a=>a.id===auId);
             const auEntry = item.auData[auId];
-            return def && (isFusion ? auEntry?.fusionImageUrl : auEntry?.star3ImageUrl);
+            return def && (isFusion ? auEntry?.fusionImageUrl : auEntry?.maxStarImageUrl);
         }).map(auId => {
             const def = alternativeUniverses.find(a=>a.id===auId);
             const color = def?.color || '#64dcb4';
@@ -1299,7 +1299,7 @@ function renderAuEntries() {
     const entries = all.filter(c => {
         const e = c.auData?.[selectedAuId];
         if (!e) return false;
-        return c.isFusion ? !!e.fusionImageUrl : !!e.star3ImageUrl;
+        return c.isFusion ? !!e.fusionImageUrl : !!e.maxStarImageUrl;
     });
 
     dom.auEntriesGrid.innerHTML = '';
@@ -1311,8 +1311,9 @@ function renderAuEntries() {
 
     entries.forEach(char => {
         const entry = char.auData[selectedAuId];
-        const imgUrl = char.isFusion ? entry.fusionImageUrl : entry.star3ImageUrl;
-        const origUrl = char.isFusion ? (char.previewUrl || char.imageUrl) : (char.evolutions?.find(e=>e.star===3)?.imageUrl || char.imageUrl);
+        const imgUrl = char.isFusion ? entry.fusionImageUrl : entry.maxStarImageUrl;
+        const maxStar = 1 + (char.evolutions?.length || 0);
+        const origUrl = char.isFusion ? (char.previewUrl || char.imageUrl) : (char.evolutions?.find(e=>e.star===maxStar)?.imageUrl || char.imageUrl);
         const card = document.createElement('div');
         card.className = 'au-entry-card';
         card.innerHTML = `
@@ -1453,9 +1454,9 @@ function openAuEntryModalForCharInAu(charId) {
     const star3Preview = document.getElementById('au-star3-preview');
     const fusionPreview = document.getElementById('au-fusion-preview');
 
-    if (existing?.star3ImageUrl) {
-        star3Link.value = existing.star3ImageUrl;
-        star3Preview.src = existing.star3ImageUrl;
+    if (existing?.maxStarImageUrl) {
+        star3Link.value = existing.maxStarImageUrl;
+        star3Preview.src = existing.maxStarImageUrl;
         document.getElementById('au-star3-preview-wrap').classList.remove('hidden');
         // set method to link
         const sel = document.querySelector('#au-star3-field .image-upload-method');
@@ -1569,7 +1570,7 @@ async function saveAuEntry() {
 
         const prompt = dom.auEntryPrompt.value.trim();
         const entryData = {};
-        if (star3Url)  entryData.star3ImageUrl = star3Url;
+        if (star3Url)  entryData.maxStarImageUrl = star3Url;
         if (fusionUrl) entryData.fusionImageUrl = fusionUrl;
         if (prompt)    entryData.prompt = prompt;
 
@@ -2520,6 +2521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const auData = c.auData || {};
             Object.values(auData).forEach(entry => {
+                if (entry.maxStarImageUrl) urls.add(entry.maxStarImageUrl);
                 if (entry.star3ImageUrl)  urls.add(entry.star3ImageUrl);
                 if (entry.fusionImageUrl) urls.add(entry.fusionImageUrl);
             });
